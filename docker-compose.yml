@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # База данных для AuthService
+  auth-db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=authdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth-data:/var/lib/postgresql/data
+    networks:
+      - messenger-network
+
+  # AuthService
+  auth-service:
+    build:
+      context: ./src/Services/AuthService/AuthService.API
+      dockerfile: Dockerfile
+    depends_on:
+      - auth-db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=auth-db;Port=5432;Database=authdb;Username=postgres;Password=postgres
+    ports:
+      - "5001:80"
+    networks:
+      - messenger-network
+
+  # Redis для кэширования и сессий
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - messenger-network
+
+networks:
+  messenger-network:
+    driver: bridge
+
+volumes:
+  auth-data:

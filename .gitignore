@@ -1,0 +1,20 @@
+# Игнорируем файлы конфигурации с секретами
+appsettings.Development.json
+appsettings.Production.json
+
+# Игнорируем личные настройки пользователя
+.vs/
+.vscode/
+*.user
+
+# Игнорируем собранные файлы
+bin/
+obj/
+
+# Игнорируем локальные файлы базы данных
+*.db
+*.sqlite
+
+# Логи
+logs/
+*.log
