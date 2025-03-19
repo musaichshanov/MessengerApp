@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # База данных для AuthService
+
   auth-db:
     image: postgres:latest
     environment:
@@ -15,7 +15,7 @@ services:
     networks:
       - messenger-network
 
-  # AuthService
+
   auth-service:
     build:
       context: ./src/Services/AuthService/AuthService.API
@@ -30,7 +30,54 @@ services:
     networks:
       - messenger-network
 
-  # Redis для кэширования и сессий
+  user-db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=userdb
+    volumes:
+      - user-data:/var/lib/postgresql/data
+    networks:
+      - messenger-network
+
+  user-service:
+    build:
+      context: ./src/Services/UserService/UserService.API
+      dockerfile: Dockerfile
+    depends_on:
+      - user-db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=user-db;Port=5432;Database=userdb;Username=postgres;Password=postgres
+    ports:
+      - "5002:80"
+    networks:
+      - messenger-network
+
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - messenger-network
+
+
+  api-gateway:
+    build:
+      context: ./src/ApiGateway/ApiGateway
+      dockerfile: Dockerfile
+    ports:
+      - "5000:80"
+    depends_on:
+      - auth-service
+      - user-service
+      # и другие сервисы
+    networks:
+      - messenger-network
+
   redis:
     image: redis:latest
     ports:
